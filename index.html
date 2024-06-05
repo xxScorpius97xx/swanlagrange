@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dynamic Moving Images</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background-color: black;
+        font-family: Arial, sans-serif;
+    }
+    .moving-image {
+        position: absolute;
+    }
+    #img1 {
+        width: 127px;
+        height: 38px;
+    }
+    #img2 {
+        width: 100px;
+        height: 100px;
+    }
+    .footer {
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        text-align: center;
+        color: white;
+    }
+</style>
+</head>
+<body>
+<img src="lagrange.png" class="moving-image" id="img1">
+<img src="swan.png" class="moving-image" id="img2">
+
+<div class="footer">
+    <p style="font-family: Arial, sans-serif;">MaV &copy; 2024 AAR</p>
+</div>
+
+<script>
+    const images = [
+        {
+            element: document.getElementById('img1'),
+            dx: (Math.random() - 0.5) * 10,
+            dy: (Math.random() - 0.5) * 10
+        },
+        {
+            element: document.getElementById('img2'),
+            dx: (Math.random() - 0.5) * 10,
+            dy: (Math.random() - 0.5) * 10
+        }
+    ];
+
+    function randomizePosition(image) {
+        image.element.style.top = Math.random() * (window.innerHeight - image.element.offsetHeight) + 'px';
+        image.element.style.left = Math.random() * (window.innerWidth - image.element.offsetWidth) + 'px';
+    }
+
+    images.forEach(image => {
+        randomizePosition(image);
+    });
+
+    function moveImages() {
+        images.forEach(image => {
+            let rect = image.element.getBoundingClientRect();
+
+            // Check for collision with the walls
+            if (rect.top + image.dy < 0 || rect.bottom + image.dy > window.innerHeight) {
+                image.dy *= -1;
+            }
+            if (rect.left + image.dx < 0 || rect.right + image.dx > window.innerWidth) {
+                image.dx *= -1;
+            }
+
+            // Check for collision with other images
+            images.forEach(otherImage => {
+                if (image !== otherImage) {
+                    let otherRect = otherImage.element.getBoundingClientRect();
+                    if (rect.left < otherRect.right &&
+                        rect.right > otherRect.left &&
+                        rect.top < otherRect.bottom &&
+                        rect.bottom > otherRect.top) {
+                        
+                        // Calculate new velocities to ensure a realistic bounce
+                        const tempDx = image.dx;
+                        const tempDy = image.dy;
+                        image.dx = otherImage.dx;
+                        image.dy = otherImage.dy;
+                        otherImage.dx = tempDx;
+                        otherImage.dy = tempDy;
+
+                        // Move images slightly apart to prevent sticking
+                        image.element.style.top = rect.top + image.dy + 'px';
+                        image.element.style.left = rect.left + image.dx + 'px';
+                        otherImage.element.style.top = otherRect.top + otherImage.dy + 'px';
+                        otherImage.element.style.left = otherRect.left + otherImage.dx + 'px';
+                    }
+                }
+            });
+
+            // Move the image
+            image.element.style.top = rect.top + image.dy + 'px';
+            image.element.style.left = rect.left + image.dx + 'px';
+        });
+    }
+
+    setInterval(moveImages, 50);
+
+    window.addEventListener('resize', () => {
+        images.forEach(image => {
+            randomizePosition(image);
+        });
+    });
+
+    window.addEventListener('orientationchange', () => {
+        location.reload();
+    });
+</script>
+</body>
+</html>
