@@ -22,12 +22,23 @@ jobs:
       run: docker build . --file Dockerfile --tag mavhub/swanlagrange:${{ env.IMAGE_TAG }}
 
     - name: Tag image as latest
-      run: |
-        docker tag mavhub/swanlagrange:${{ env.IMAGE_TAG }} mavhub/swanlagrange:latest
-        docker push mavhub/swanlagrange:latest
+      run: docker tag mavhub/swanlagrange:${{ env.IMAGE_TAG }} mavhub/swanlagrange:latest
       
     - name: Login to Docker Hub
       run: echo "${{ secrets.DOCKER_ACCESS_TOKEN }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
     - name: Push Docker image to Docker Hub with timestamp tag
       run: docker push mavhub/swanlagrange:${{ env.IMAGE_TAG }}
+
+    - name: Push Docker image to Docker Hub with latest tag
+      run: docker push mavhub/swanlagrange:latest
+
+    - name: Set up Docker Compose
+      uses: docker/setup-buildx-action@v2
+
+    - name: Pull latest Docker image
+      run: docker-compose pull
+
+    - name: Recreate and restart containers
+      run: docker-compose up --force-recreate --build -d
+      
