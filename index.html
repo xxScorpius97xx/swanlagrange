@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dynamic Moving Images</title>
+<title>Swan Screensaver</title>
 <style>
     body {
         margin: 0;
@@ -15,29 +15,43 @@
         position: absolute;
     }
     #img1 {
-        width: 170px;
-        height: 50px;
-    }
-    #img2 {
         width: 100px;
         height: 100px;
     }
-    .footer {
+    #img2 {
+        width: 90px;
+        height: 90px;
+    }
+    .header {
         position: absolute;
-        bottom: 10px;
+        top: 10px;
         width: 100%;
         text-align: center;
         color: white;
+        z-index: 10;
+    }
+    .clone-button {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        background-color: white;
+        border: none;
+        padding: 10px;
+        cursor: pointer;
     }
 </style>
 </head>
 <body>
+<div class="header">
+    <p style="font-family: Arial, sans-serif;">MaV &copy; 2024 AAR V2.0</p>
+</div>
+
 <img src="lagrange.png" class="moving-image" id="img1">
 <img src="swan.png" class="moving-image" id="img2">
 
-<div class="footer">
-    <p style="font-family: Arial, sans-serif;">MaV &copy; 2024 AAR</p>
-</div>
+<button class="clone-button">Clone it!</button>
 
 <script>
     const images = [
@@ -54,13 +68,55 @@
     ];
 
     function randomizePosition(image) {
-        image.element.style.top = Math.random() * (window.innerHeight - image.element.offsetHeight) + 'px';
-        image.element.style.left = Math.random() * (window.innerWidth - image.element.offsetWidth) + 'px';
+        let overlap;
+        do {
+            overlap = false;
+            image.element.style.top = Math.random() * (window.innerHeight - image.element.offsetHeight) + 'px';
+            image.element.style.left = Math.random() * (window.innerWidth - image.element.offsetWidth) + 'px';
+            
+            const rect = image.element.getBoundingClientRect();
+            images.forEach(otherImage => {
+                if (image !== otherImage) {
+                    const otherRect = otherImage.element.getBoundingClientRect();
+                    if (rect.left < otherRect.right &&
+                        rect.right > otherRect.left &&
+                        rect.top < otherRect.bottom &&
+                        rect.bottom > otherRect.top) {
+                        overlap = true;
+                    }
+                }
+            });
+        } while (overlap);
     }
 
     images.forEach(image => {
         randomizePosition(image);
     });
+
+    function handleImageCollision(image, otherImage) {
+        const rect = image.element.getBoundingClientRect();
+        const otherRect = otherImage.element.getBoundingClientRect();
+
+        // Calculate the distance between the centers of the images
+        const dx = (rect.left + rect.right) / 2 - (otherRect.left + otherRect.right) / 2;
+        const dy = (rect.top + rect.bottom) / 2 - (otherRect.top + otherRect.bottom) / 2;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Minimum distance to prevent overlapping
+        const minDistance = (rect.width + otherRect.width) / 2;
+
+        if (distance < minDistance) {
+            // Calculate the minimum translation distance needed to separate the images
+            const separationX = dx * (minDistance - distance) / distance;
+            const separationY = dy * (minDistance - distance) / distance;
+
+            // Move the images apart
+            image.element.style.top = rect.top + separationY + 'px';
+            image.element.style.left = rect.left + separationX + 'px';
+            otherImage.element.style.top = otherRect.top - separationY + 'px';
+            otherImage.element.style.left = otherRect.left - separationX + 'px';
+        }
+    }
 
     function moveImages() {
         images.forEach(image => {
@@ -77,26 +133,7 @@
             // Check for collision with other images
             images.forEach(otherImage => {
                 if (image !== otherImage) {
-                    let otherRect = otherImage.element.getBoundingClientRect();
-                    if (rect.left < otherRect.right &&
-                        rect.right > otherRect.left &&
-                        rect.top < otherRect.bottom &&
-                        rect.bottom > otherRect.top) {
-                        
-                        // Calculate new velocities to ensure a realistic bounce
-                        const tempDx = image.dx;
-                        const tempDy = image.dy;
-                        image.dx = otherImage.dx;
-                        image.dy = otherImage.dy;
-                        otherImage.dx = tempDx;
-                        otherImage.dy = tempDy;
-
-                        // Move images slightly apart to prevent sticking
-                        image.element.style.top = rect.top + image.dy + 'px';
-                        image.element.style.left = rect.left + image.dx + 'px';
-                        otherImage.element.style.top = otherRect.top + otherImage.dy + 'px';
-                        otherImage.element.style.left = otherRect.left + otherImage.dx + 'px';
-                    }
+                    handleImageCollision(image, otherImage);
                 }
             });
 
@@ -116,6 +153,31 @@
 
     window.addEventListener('orientationchange', () => {
         location.reload();
+    });
+
+    let cloneCount = 0; // Variable to track the number of clones
+
+    document.querySelector('.clone-button').addEventListener('click', () => {
+        if (cloneCount < 20) { // Check if the maximum limit has been reached
+            const randomIndex = Math.floor(Math.random() * images.length);
+            const originalImage = images[randomIndex].element;
+            const clonedImage = originalImage.cloneNode(true);
+            document.body.appendChild(clonedImage);
+
+            const newImage = {
+                element: clonedImage,
+                dx: (Math.random() - 0.5) * 10,
+                dy: (Math.random() - 0.5) * 10
+            };
+
+            randomizePosition(newImage);
+            images.push(newImage);
+
+            cloneCount++; // Increment the clone count
+            if (cloneCount === 20) {
+                document.querySelector('.clone-button').disabled = true; // Disable the button after 20 clones
+            }
+        }
     });
 </script>
 </body>
