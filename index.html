@@ -41,11 +41,17 @@
         padding: 10px;
         cursor: pointer;
     }
+    .animation {
+        display: block;
+        margin: 10px auto 0;
+        transform: scale(0.5); /* Scale to 25% of original size */
+        transform-origin: top center; /* Keep the top center as the origin for scaling */
+    }
 </style>
 </head>
 <body>
 <div class="header">
-    <p style="font-family: Arial, sans-serif;">MaV &copy; 2024 Tap2Earn V1.0</p>
+    <p style="font-family: Arial, sans-serif;">MaV &copy; 2024 AAR V2.0</p>
     <img src="taptoearn.gif" class="animation" alt="Tap to Earn Animation">
 </div>
 
@@ -53,6 +59,8 @@
 <img src="swan.png" class="moving-image" id="img2">
 
 <button class="clone-button">Tap2Earn!</button>
+
+<audio id="click-sound" src="click.wav" preload="auto"></audio>
 
 <script>
     const images = [
@@ -178,6 +186,8 @@
             if (cloneCount === 20) {
                 document.querySelector('.clone-button').disabled = true; // Disable the button after 20 clones
             }
+
+            document.getElementById('click-sound').play(); // Play the sound when the button is clicked
         }
     });
 </script>
