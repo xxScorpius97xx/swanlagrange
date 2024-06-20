@@ -15,8 +15,8 @@
         position: absolute;
     }
     #img1 {
-        width: 100px;
-        height: 100px;
+        width: 90px;
+        height: 90px;
     }
     #img2 {
         width: 90px;
@@ -30,28 +30,35 @@
         color: white;
         z-index: 10;
     }
-    .clone-button {
+    .clone-button, .reload-button {
         position: absolute;
         bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%);
         z-index: 10;
         background-color: white;
         border: none;
         padding: 10px;
         cursor: pointer;
     }
+    .clone-button {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    .reload-button {
+        left: 57%; /* Adjust the position of the reload button */
+        transform: translateX(-50%);
+        display: none; /* Initially hidden */
+    }
     .animation {
         display: block;
         margin: 10px auto 0;
-        transform: scale(0.5); /* Scale to 25% of original size */
+        transform: scale(0.75); /* Scale to 75% of original size */
         transform-origin: top center; /* Keep the top center as the origin for scaling */
     }
 </style>
 </head>
 <body>
 <div class="header">
-    <p style="font-family: Arial, sans-serif;">MaV &copy; 2024 Tap2Earn V1.0</p>
+    <p style="font-family: Arial, sans-serif;">MaV &copy; 2024 Tap2Earn V2.2</p>
     <img src="taptoearn.gif" class="animation" alt="Tap to Earn Animation">
 </div>
 
@@ -59,8 +66,10 @@
 <img src="swan.png" class="moving-image" id="img2">
 
 <button class="clone-button">Tap Here!</button>
+<button class="reload-button" onclick="location.reload();">Reload!</button>
 
 <audio id="click-sound" src="click.wav" preload="auto"></audio>
+<audio id="music" src="song.mp3" preload="auto"></audio>
 
 <script>
     const images = [
@@ -169,8 +178,9 @@
     document.querySelector('.clone-button').addEventListener('click', () => {
         if (cloneCount < 20) { // Check if the maximum limit has been reached
             const randomIndex = Math.floor(Math.random() * images.length);
-            const originalImage = images[randomIndex].element;
+            const originalImage = images[cloneCount === 19 ? 0 : randomIndex].element; // On the last clone, use the first image
             const clonedImage = originalImage.cloneNode(true);
+            clonedImage.src = cloneCount === 19 ? 'mavlogo.png' : originalImage.src; // Use mavlogo.png for the last clone
             document.body.appendChild(clonedImage);
 
             const newImage = {
@@ -185,6 +195,8 @@
             cloneCount++; // Increment the clone count
             if (cloneCount === 20) {
                 document.querySelector('.clone-button').disabled = true; // Disable the button after 20 clones
+                document.getElementById('music').play(); // Play the music when the last clone is created
+                document.querySelector('.reload-button').style.display = 'block'; // Show the reload button
             }
 
             document.getElementById('click-sound').play(); // Play the sound when the button is clicked
